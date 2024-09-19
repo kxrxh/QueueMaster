@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package taskqueue;
+
+option go_package = "/pb/";
+
+service TaskQueue {
+  rpc SubmitTask(TaskRequest) returns (TaskResponse);
+  rpc GetTaskStatus(TaskStatusRequest) returns (TaskStatusResponse);
+  rpc StreamTasksResults(stream TaskResultRequest)
+      returns (stream TaskResultResponse);
+}
+
+message TaskRequest {
+  string task_id = 1;
+  string task_type = 2;
+  string task_payload = 3;
+}
+
+message TaskResponse {
+  string task_id = 1;
+  string status = 2;
+}
+
+message TaskStatusRequest { string task_id = 1; }
+
+message TaskStatusResponse {
+  string task_id = 1;
+  string status = 2;
+  string result = 3;
+}
+
+message TaskResultRequest { string task_id = 1; }
+
+// Response message for streaming task results
+message TaskResultResponse {
+  string task_id = 1;
+  string result = 2;
+  string status = 3; // Status of the task (e.g., "Completed")
+}
+

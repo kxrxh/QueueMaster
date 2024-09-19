@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  server:
+    build: .
+    container_name: server
+    ports:
+      - 8080:8080
+    networks:
+      - rabbitmq_go_net
+      - metrics
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "15692:15692"
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - rabbitmq_go_net
+      - metrics
+    environment:
+      - RABBITMQ_PLUGINS=rabbitmq_management,rabbitmq_prometheus
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - metrics
+
+  grafana:
+    image: grafana/grafana
+    container_name: 'grafana'
+    ports:
+      - 3000:3000
+    networks:
+      - metrics
+      - rabbitmq_go_net
+
+networks:
+  rabbitmq_go_net:
+    driver: bridge
+  metrics:
+    driver: bridge
