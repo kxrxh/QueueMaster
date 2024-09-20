@@ -88,16 +88,6 @@ The configuration is managed via a `config.yaml` file located in the `/config/` 
 2. The **gRPC server** pushes the task into the **RabbitMQ** queue.
 3. A **worker node** picks up the task, processes it, and sends the result back to the client via gRPC.
 
-## Contributing 🤝
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository.
-2. Create a new feature branch (`git checkout -b feature/new-feature`).
-3. Commit your changes (`git commit -m "Add new feature"`).
-4. Push to the branch (`git push origin feature/new-feature`).
-5. Open a Pull Request.
-
 ## License 📜
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
