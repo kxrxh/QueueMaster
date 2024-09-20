@@ -57,7 +57,7 @@
 5. **Submit a task via the client**:
 
     ```bash
-    go run cmd/client/main.go --task "example_task"
+    go run cmd/client/main.go submit -T "math" -P "1 + 2 * 5"
     ```
 
 ### gRPC API 🛠️
