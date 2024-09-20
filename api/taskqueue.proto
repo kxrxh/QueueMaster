@@ -12,28 +12,28 @@ service TaskQueue {
 }
 
 message SubmitTaskRequest {
-  int32 task_id = 1;
+  string task_uuid = 1;
   string task_type = 2;
   string task_payload = 3;
 }
 
 message SubmitTaskResponse {
-  int32 task_id = 1;
+  string task_uuid = 1;
   string status = 2;
 }
 
-message GetTaskStatusRequest { int32 task_id = 1; }
+message GetTaskStatusRequest { string task_uuid = 1; }
 
 message GetTaskStatusResponse {
-  int32 task_id = 1;
+  string task_uuid = 1;
   string status = 2;
   string result = 3;
 }
 
-message StreamTasksResultsRequest { int32 task_id = 1; }
+message StreamTasksResultsRequest { string task_uuid = 1; }
 
 message StreamTaskResultResponse {
-  int32 task_id = 1;
+  string task_uuid = 1;
   string result = 2;
   string status = 3; // Status of the task (e.g., "Completed")
 }

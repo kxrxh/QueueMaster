@@ -2,6 +2,8 @@ package taskclient
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -13,9 +15,6 @@ type Client struct {
 	pb.TaskQueueClient
 }
 
-// NewClient creates a new Client from a gRPC connection.
-//
-// The Client allows you to interact with the task queue service.
 func NewClient(conn *grpc.ClientConn) *Client {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
@@ -24,41 +23,64 @@ func NewClient(conn *grpc.ClientConn) *Client {
 	return &Client{pb.NewTaskQueueClient(conn)}
 }
 
-// SubmitTask submits a task to the task queue.
-//
-// The task is identified by the combination of taskId and taskType. The taskPayload
-// is the payload of the task that will be passed to the task handler.
-//
-// Returns a SubmitTaskResponse with the task ID and status of the task.
-func (c *Client) SubmitTask(taskId int, taskType string, taskPayload string) (*pb.SubmitTaskResponse, error) {
+func (c *Client) SubmitTask(taskUuid string, taskType string, taskPayload string) (*pb.SubmitTaskResponse, error) {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
-	logger.Sugar().Infof("Submitting task %d of type %s with payload %s", taskId, taskType, taskPayload)
-	taskRequst := pb.SubmitTaskRequest{TaskId: int32(taskId), TaskType: taskType, TaskPayload: taskPayload}
+	logger.Sugar().Infof("Submitting task %d of type %s with payload %s", taskUuid, taskType, taskPayload)
+	taskRequst := pb.SubmitTaskRequest{TaskUuid: taskUuid, TaskType: taskType, TaskPayload: taskPayload}
 	return c.TaskQueueClient.SubmitTask(context.Background(), &taskRequst)
 }
 
-// GetTaskStatus returns the status of a task.
-//
-// Returns a GetTaskStatusResponse with the task ID and status of the task.
-func (c *Client) GetTaskStatus(taskId int) (*pb.GetTaskStatusResponse, error) {
+func (c *Client) GetTaskStatus(taskUuid string) (*pb.GetTaskStatusResponse, error) {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
-	logger.Sugar().Infof("Getting status of task %d", taskId)
-	taskRequst := pb.GetTaskStatusRequest{TaskId: int32(taskId)}
+	logger.Sugar().Infof("Getting status of task %d", taskUuid)
+	taskRequst := pb.GetTaskStatusRequest{TaskUuid: taskUuid}
 	return c.TaskQueueClient.GetTaskStatus(context.Background(), &taskRequst)
 }
 
-// StreamTasksResults streams the results of a task.
-//
-// Returns a StreamTaskResultResponse with the task ID and result of the task.
-// func (c *Client) StreamTasksResults(taskId int) (*pb.StreamTaskResultResponse, error) {
-// 	logger, _ := zap.NewProduction()
-// 	defer logger.Sync()
+func (c *Client) StreamTasksResults(taskUuid string) error {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	logger.Sugar().Infof("Streaming results of task %d", taskUuid)
 
-// 	logger.Sugar().Infof("Streaming results of task %d", taskId)
-// 	taskRequst := pb.StreamTasksResultsRequest{TaskId: int32(taskId)}
-// 	return c.TaskQueueClient.StreamTasksResults(context.Background())
-// }
+	stream, err := c.TaskQueueClient.StreamTasksResults(context.Background())
+	if err != nil {
+		return fmt.Errorf("error creating stream: %v", err)
+	}
+
+	// Send the initial request
+	err = stream.Send(&pb.StreamTasksResultsRequest{TaskUuid: taskUuid})
+	if err != nil {
+		return fmt.Errorf("error sending initial request: %v", err)
+	}
+
+	// Start a goroutine to receive responses
+	go func() {
+		for {
+			response, err := stream.Recv()
+			if err == io.EOF {
+				// End of stream
+				logger.Sugar().Info("Stream closed by server")
+				return
+			}
+			if err != nil {
+				logger.Sugar().Errorf("Error receiving from stream: %v", err)
+				return
+			}
+
+			// Process the response here
+			logger.Sugar().Infof("Received result: %v", response)
+		}
+	}()
+
+	// Close the send direction of the stream
+	err = stream.CloseSend()
+	if err != nil {
+		return fmt.Errorf("error closing send stream: %v", err)
+	}
+
+	return nil
+}
