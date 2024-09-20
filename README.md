@@ -25,7 +25,7 @@
 
 ### Prerequisites 🛠️
 
-- **Go** 1.19+
+- **Go** 1.23+
 - **Docker** and **Docker Compose**
 - **RabbitMQ** (can be run via Docker Compose)
 - **Prometheus** and **Grafana** (can be run via Docker Compose)
