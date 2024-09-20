@@ -10,6 +10,7 @@
 - Real-time task status updates via gRPC streaming 🔔
 - Configurable task retry mechanism and error handling ⚠️
 - Modular architecture for easy extension and maintenance 🛠️
+- Real-time metrics for monitoring and alerting 📊
 
 ## Tech Stack 🧩
 
@@ -17,6 +18,8 @@
 - **gRPC**: High-performance RPC framework for communication between client, server, and workers 📡
 - **RabbitMQ**: Message broker to queue and distribute tasks to worker nodes 🐇
 - **Docker**: Containerization for easy deployment and environment setup 🐳
+- **Prometheus**: Real-time metrics for monitoring and alerting 📊
+- **Grafana**: Dashboard for monitoring and visualization 📊
 
 ## Getting Started 🚀
 
@@ -25,6 +28,7 @@
 - **Go** 1.19+
 - **Docker** and **Docker Compose**
 - **RabbitMQ** (can be run via Docker Compose)
+- **Prometheus** and **Grafana** (can be run via Docker Compose)
 
 ### Installation 🛠️
 
